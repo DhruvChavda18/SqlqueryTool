@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const QueryInput = ({ onResult }) => {
-  const [query, setQuery] = useState("");
+const QueryInput = ({ onResult, setQuery }) => {
+  // add setQuery here
+  const [query, setLocalQuery] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async () => {
@@ -17,7 +18,8 @@ const QueryInput = ({ onResult }) => {
       const response = await axios.post("http://localhost:8082/api/execute", {
         sqlQuery: query,
       });
-      onResult(response.data); // Pass result to App
+      onResult(response.data);
+      setQuery(query); // this line ensures App gets the query
     } catch (err) {
       setError(err.response?.data?.message || "Query failed.");
     }
@@ -32,7 +34,7 @@ const QueryInput = ({ onResult }) => {
         id="queryInput"
         rows={4}
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => setLocalQuery(e.target.value)}
         placeholder="e.g., SELECT * FROM employees"
       />
       <br />
