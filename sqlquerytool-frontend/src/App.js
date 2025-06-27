@@ -4,6 +4,7 @@ import QueryInput from "./components/QueryInput";
 import SavePage from "./components/SavePage";
 import SavedPages from "./components/SavedPages";
 import axios from "axios"; // add this line
+import ResultTable from "./components/ResultTable";
 
 function App() {
   const [query, setQuery] = useState("");
@@ -24,34 +25,25 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <h2>SQL Query Tool</h2>
-      <QueryInput setQuery={setQuery} onResult={setResult} />
-      <SavePage query={query} />
-      <SavedPages onOpenQuery={handleOpenQuery} /> {/* add this line */}
-      <hr />
-      <h3>Query Result:</h3>
-      <table border="1" style={{ width: "100%", marginTop: "10px" }}>
-        <thead>
-          {result.length > 0 && (
-            <tr>
-              {Object.keys(result[0]).map((key) => (
-                <th key={key}>{key}</th>
-              ))}
-            </tr>
-          )}
-        </thead>
-        <tbody>
-          {result.map((row, idx) => (
-            <tr key={idx}>
-              {Object.values(row).map((val, i) => (
-                <td key={i}>{val}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="header-bar">SQL Query Tool</div>
+      <div className="App">
+        <div className="section-card">
+          <QueryInput setQuery={setQuery} onResult={setResult} />
+        </div>
+        <div className="section-card">
+          <SavePage query={query} />
+        </div>
+        <div className="section-card">
+          <SavedPages onOpenQuery={handleOpenQuery} />
+        </div>
+        <hr />
+        <div className="section-card">
+          <h3>Query Result:</h3>
+          <ResultTable result={result} />
+        </div>
+      </div>
+    </>
   );
 }
 
