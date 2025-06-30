@@ -3,6 +3,8 @@ package com.project.sqlquerytool.controller;
 import com.project.sqlquerytool.model.SavedQuery;
 import com.project.sqlquerytool.service.DynamicJpaService;
 import com.project.sqlquerytool.service.SavedQueryService;
+import org.hibernate.query.Query;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,19 +30,19 @@ public class SavedQueryController {
     @PostMapping("/saveQuery")
     public ResponseEntity<?> saveQuery(@RequestBody Map<String, String> request) {
         String pageName = request.get("pageName");
-        String query = request.get("query");
+        String queryText = request.get("query");
 
-        if (pageName == null || query == null || pageName.isBlank() || query.isBlank()) {
+        if (pageName == null || queryText == null || pageName.isBlank() || queryText.isBlank()) {
             return ResponseEntity.badRequest().body("Page name and query are required.");
         }
 
-        if (!query.trim().toLowerCase().startsWith("select")) {
+        if (!queryText.trim().toLowerCase().startsWith("select")) {
             return ResponseEntity.badRequest().body("Only SELECT queries can be saved.");
         }
 
         SavedQuery sq = new SavedQuery();
         sq.setPageName(pageName);
-        sq.setQuery(query);
+        sq.setQuery(queryText);
 
         savedQueryService.save(sq);
 
@@ -63,9 +65,9 @@ public class SavedQueryController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Page not found.");
         }
 
-        String query = sq.getQuery();
+        String queryText = sq.getQuery();
 
-        if (!query.trim().toLowerCase().startsWith("select")) {
+        if (!queryText.trim().toLowerCase().startsWith("select")) {
             return ResponseEntity.badRequest().body("Only SELECT queries are allowed.");
         }
 
@@ -74,12 +76,14 @@ public class SavedQueryController {
             EntityManagerFactory emf = dynamicJpaService.getEntityManagerFactory();
             EntityManager em = emf.createEntityManager();
 
-            List<?> result = em.createNativeQuery(query).getResultList();
+            Query<?> query = em.createNativeQuery(queryText).unwrap(Query.class);
+            query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+            List<?> result = query.getResultList();
 
             em.close();
 
             Map<String, Object> response = new HashMap<>();
-            response.put("query", query);
+            response.put("query", queryText);
             response.put("result", result);
 
             return ResponseEntity.ok(response);

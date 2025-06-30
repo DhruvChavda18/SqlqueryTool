@@ -3,6 +3,8 @@ package com.project.sqlquerytool.controller;
 import com.project.sqlquerytool.service.DynamicJpaService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.query.Query;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +39,9 @@ public class QueryController {
             EntityManagerFactory emf = dynamicJpaService.getEntityManagerFactory();
             EntityManager em = emf.createEntityManager();
 
-            List<?> result = em.createNativeQuery(sqlQuery).getResultList();
+            Query<?> query = em.createNativeQuery(sqlQuery).unwrap(Query.class);
+            query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+            List<?> result = query.getResultList();
             em.close();
 
             return ResponseEntity.ok(result);
