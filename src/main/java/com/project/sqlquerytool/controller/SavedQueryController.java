@@ -1,18 +1,18 @@
 package com.project.sqlquerytool.controller;
 
 import com.project.sqlquerytool.model.SavedQuery;
-import com.project.sqlquerytool.repository.SavedQueryRepository;
+import com.project.sqlquerytool.service.DynamicJpaService;
+import com.project.sqlquerytool.service.SavedQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -20,10 +20,10 @@ import java.util.Optional;
 public class SavedQueryController {
 
     @Autowired
-    private SavedQueryRepository repository;
+    private SavedQueryService savedQueryService;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private DynamicJpaService dynamicJpaService;
 
     @PostMapping("/saveQuery")
     public ResponseEntity<?> saveQuery(@RequestBody Map<String, String> request) {
@@ -41,35 +41,42 @@ public class SavedQueryController {
         SavedQuery sq = new SavedQuery();
         sq.setPageName(pageName);
         sq.setQuery(query);
-        repository.save(sq);
+
+        savedQueryService.save(sq);
 
         return ResponseEntity.ok("✅ Query saved successfully!");
     }
 
-    // List all saved pages
+    // list all saved pages
     @GetMapping("/pages")
     public ResponseEntity<List<SavedQuery>> getAllPages() {
-        List<SavedQuery> pages = repository.findAll(Sort.by(Sort.Direction.DESC, "createdDate"));
+        List<SavedQuery> pages = savedQueryService.findAll();
         return ResponseEntity.ok(pages);
     }
 
-    // Execute a saved page by ID
+    // execute a saved page
     @GetMapping("/pages/{id}")
     public ResponseEntity<?> runSavedQuery(@PathVariable Long id) {
-        Optional<SavedQuery> optionalQuery = repository.findById(id);
+        SavedQuery sq = savedQueryService.findById(id);
 
-        if (optionalQuery.isEmpty()) {
+        if (sq == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Page not found.");
         }
 
-        String query = optionalQuery.get().getQuery().trim();
+        String query = sq.getQuery();
 
-        if (!query.toLowerCase().startsWith("select")) {
+        if (!query.trim().toLowerCase().startsWith("select")) {
             return ResponseEntity.badRequest().body("Only SELECT queries are allowed.");
         }
 
         try {
-            List<Map<String, Object>> result = jdbcTemplate.queryForList(query);
+            // use EntityManager to run a native query on dynamic DB
+            EntityManagerFactory emf = dynamicJpaService.getEntityManagerFactory();
+            EntityManager em = emf.createEntityManager();
+
+            List<?> result = em.createNativeQuery(query).getResultList();
+
+            em.close();
 
             Map<String, Object> response = new HashMap<>();
             response.put("query", query);

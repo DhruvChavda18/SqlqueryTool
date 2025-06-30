@@ -5,10 +5,12 @@ import SavePage from "./components/SavePage";
 import SavedPages from "./components/SavedPages";
 import axios from "axios"; // add this line
 import ResultTable from "./components/ResultTable";
+import DatabaseConfig from "./components/DatabaseConfig";
 
 function App() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState([]);
+  const [dbConnected, setDbConnected] = useState(null);
 
   // ADD this function to handle opening saved queries
   const handleOpenQuery = async (pageId) => {
@@ -28,6 +30,9 @@ function App() {
     <>
       <div className="header-bar">SQL Query Tool</div>
       <div className="App">
+        <div className="section-card">
+          <DatabaseConfig onConnected={setDbConnected} />
+        </div>
         <div className="section-card">
           <QueryInput setQuery={setQuery} onResult={setResult} />
         </div>

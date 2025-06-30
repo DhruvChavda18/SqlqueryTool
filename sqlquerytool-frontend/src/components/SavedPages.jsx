@@ -32,7 +32,7 @@ const SavedPages = ({ onOpenQuery }) => {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    if (showModal && pages.length === 0) {
+    if (showModal) {
       const fetchPages = async () => {
         try {
           const response = await axios.get("http://localhost:8082/api/pages");
@@ -43,7 +43,7 @@ const SavedPages = ({ onOpenQuery }) => {
       };
       fetchPages();
     }
-  }, [showModal, pages.length]);
+  }, [showModal]);
 
   const handleOpen = (pageId) => {
     onOpenQuery(pageId);

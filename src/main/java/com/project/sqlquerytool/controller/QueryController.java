@@ -1,9 +1,10 @@
 package com.project.sqlquerytool.controller;
 
+import com.project.sqlquerytool.service.DynamicJpaService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,32 +16,34 @@ import java.util.Map;
 public class QueryController {
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private DynamicJpaService dynamicJpaService;
 
     @PostMapping("/execute")
     public ResponseEntity<?> executeQuery(@RequestBody Map<String, String> payload) {
-        String sqlQuery = payload.get("sqlQuery").trim().toLowerCase();
+        String sqlQuery = payload.get("sqlQuery").trim();
 
-        if (!sqlQuery.startsWith("select") ||
-            sqlQuery.contains("insert") ||
-            sqlQuery.contains("update") ||
-            sqlQuery.contains("delete") ||
-            sqlQuery.contains("drop") ||
-            sqlQuery.contains("alter") ||
-            sqlQuery.contains("truncate") ||
-            sqlQuery.contains("create")) {
-
+        if (!sqlQuery.toLowerCase().startsWith("select") ||
+            sqlQuery.toLowerCase().contains("insert") ||
+            sqlQuery.toLowerCase().contains("update") ||
+            sqlQuery.toLowerCase().contains("delete") ||
+            sqlQuery.toLowerCase().contains("drop") ||
+            sqlQuery.toLowerCase().contains("alter") ||
+            sqlQuery.toLowerCase().contains("truncate") ||
+            sqlQuery.toLowerCase().contains("create")) {
             return ResponseEntity.badRequest().body("❌ Invalid query. Only safe SELECT statements are allowed.");
         }
 
         try {
-            List<Map<String, Object>> result = jdbcTemplate.queryForList(payload.get("sqlQuery"));
+            EntityManagerFactory emf = dynamicJpaService.getEntityManagerFactory();
+            EntityManager em = emf.createEntityManager();
+
+            List<?> result = em.createNativeQuery(sqlQuery).getResultList();
+            em.close();
+
             return ResponseEntity.ok(result);
-        } catch (BadSqlGrammarException ex) {
-            return ResponseEntity.badRequest().body("SQL Error: " + ex.getMostSpecificCause().getMessage());
+
         } catch (Exception ex) {
             return ResponseEntity.status(500).body("Unexpected Error: " + ex.getMessage());
         }
     }
-    
 }

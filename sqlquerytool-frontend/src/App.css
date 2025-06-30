@@ -158,3 +158,106 @@ li {
   color: #a5b4fc;
   cursor: not-allowed;
 }
+
+/* DatabaseConfig styles */
+.dbconfig-container {
+  max-width: 400px;
+  margin: 32px auto 0 auto;
+  padding: 32px 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(99,102,241,0.10);
+  border: 1px solid #e5e7eb;
+}
+
+.dbconfig-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.dbconfig-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dbconfig-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.dbconfig-label {
+  color: #334155;
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+.dbconfig-input {
+  padding: 10px 12px;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 7px;
+  background: #f9fafb;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+
+.dbconfig-input:focus {
+  border: 1.5px solid #6366f1;
+  outline: none;
+  background: #fff;
+}
+
+.dbconfig-btn {
+  width: 100%;
+  background: #2563eb;
+  color: #fff;
+  padding: 10px 0;
+  border: none;
+  border-radius: 7px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.dbconfig-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.dbconfig-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dbconfig-message {
+  margin-top: 24px;
+  text-align: center;
+  padding: 10px 0;
+  border-radius: 7px;
+  font-size: 1rem;
+}
+
+.dbconfig-success {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.dbconfig-error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+@media (max-width: 600px) {
+  .dbconfig-container {
+    padding: 16px 4vw;
+    max-width: 98vw;
+  }
+  .dbconfig-title {
+    font-size: 1.1rem;
+  }
+}
+/* End DatabaseConfig styles */
