@@ -101,6 +101,16 @@ const fadedSortIconStyle = {
 };
 
 const ResultTable = ({ result }) => {
+  // Normalize result: if array of strings, convert to array of objects
+  let normalizedResult = result;
+  if (
+    Array.isArray(result) &&
+    result.length > 0 &&
+    typeof result[0] === "string"
+  ) {
+    normalizedResult = result.map((val) => ({ value: val }));
+  }
+
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState({});
@@ -108,11 +118,11 @@ const ResultTable = ({ result }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
 
   // Get columns from result
-  const columns = useMemo(() => (result.length > 0 ? Object.keys(result[0]) : []), [result]);
+  const columns = useMemo(() => (normalizedResult.length > 0 ? Object.keys(normalizedResult[0]) : []), [normalizedResult]);
 
   // Handle sorting
   const sortedData = useMemo(() => {
-    let sortableData = [...result];
+    let sortableData = [...normalizedResult];
     if (sortConfig.key) {
       sortableData.sort((a, b) => {
         const aValue = a[sortConfig.key];
@@ -124,7 +134,7 @@ const ResultTable = ({ result }) => {
       });
     }
     return sortableData;
-  }, [result, sortConfig]);
+  }, [normalizedResult, sortConfig]);
 
   // Handle filtering
   const filteredData = useMemo(() => {
