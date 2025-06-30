@@ -3,8 +3,6 @@ package com.project.sqlquerytool.controller;
 import com.project.sqlquerytool.model.SavedQuery;
 import com.project.sqlquerytool.service.DynamicJpaService;
 import com.project.sqlquerytool.service.SavedQueryService;
-import org.hibernate.query.Query;
-import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TupleElement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -76,15 +78,25 @@ public class SavedQueryController {
             EntityManagerFactory emf = dynamicJpaService.getEntityManagerFactory();
             EntityManager em = emf.createEntityManager();
 
-            Query<?> query = em.createNativeQuery(queryText).unwrap(Query.class);
-            query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-            List<?> result = query.getResultList();
+            List<Tuple> tuples = em.createNativeQuery(queryText, Tuple.class).getResultList();
 
+            List<Map<String, Object>> queryResult = new ArrayList<>();
+            if (!tuples.isEmpty()) {
+                List<TupleElement<?>> elements = tuples.get(0).getElements();
+                for (Tuple tuple : tuples) {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    for (TupleElement<?> element : elements) {
+                        map.put(element.getAlias(), tuple.get(element));
+                    }
+                    queryResult.add(map);
+                }
+            }
+            
             em.close();
 
             Map<String, Object> response = new HashMap<>();
             response.put("query", queryText);
-            response.put("result", result);
+            response.put("result", queryResult);
 
             return ResponseEntity.ok(response);
 

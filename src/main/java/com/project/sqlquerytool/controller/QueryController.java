@@ -3,12 +3,14 @@ package com.project.sqlquerytool.controller;
 import com.project.sqlquerytool.service.DynamicJpaService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import org.hibernate.query.Query;
-import org.hibernate.transform.Transformers;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TupleElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,9 +41,20 @@ public class QueryController {
             EntityManagerFactory emf = dynamicJpaService.getEntityManagerFactory();
             EntityManager em = emf.createEntityManager();
 
-            Query<?> query = em.createNativeQuery(sqlQuery).unwrap(Query.class);
-            query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-            List<?> result = query.getResultList();
+            List<Tuple> tuples = em.createNativeQuery(sqlQuery, Tuple.class).getResultList();
+            
+            List<Map<String, Object>> result = new ArrayList<>();
+            if (!tuples.isEmpty()) {
+                List<TupleElement<?>> elements = tuples.get(0).getElements();
+                for (Tuple tuple : tuples) {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    for (TupleElement<?> element : elements) {
+                        map.put(element.getAlias(), tuple.get(element));
+                    }
+                    result.add(map);
+                }
+            }
+            
             em.close();
 
             return ResponseEntity.ok(result);
